@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+    <!-- Shiro核心组件   -->
+    <!-- 1 配置 securityManager-->
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <!-- 配置缓存配置 -->
+        <property name="cacheManager" ref="cacheManager"/>
+        <property name="realm" ref="jdbcRealm"/>
+    </bean>
+
+    <!-- 2配置 缓存框架 ehcache-->
+    <bean id="cacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager">
+        <property name="cacheManagerConfigFile" value="classpath:ehcache.xml"/>
+    </bean>
+
+    <!-- 3 自定义Realm -->
+    <bean id="jdbcRealm" class="com.qfjy.web.shiro.ShiroRealm">
+            <property name="credentialsMatcher">
+                <bean class="org.apache.shiro.authc.credential.HashedCredentialsMatcher">
+                    <!--hashAlgorithm 加密的名称 -->
+                    <property name="hashAlgorithmName" value="MD5"></property>
+                    <!-- hashIterations 加密的次数-->
+                    <property name="hashIterations" value="1902"></property>
+                </bean>
+            </property>
+    </bean>
+    <!--
+          <property name="credentialsMatcher">
+            <bean class="org.apache.shiro.authc.credential.HashedCredentialsMatcher">
+                <property name="hashAlgorithmName" value="SHA-256"/>
+            </bean>
+        </property>
+    -->
+
+    <!-- =========================================================
+         Shiro Spring特有的整合
+         ========================================================= -->
+    <!-- 后处理器自动为Spring配置的Shiro对象调用init（）和destroy（）方法，
+    因此您不必1）为每个bean定义指定init-method和destroy-method属性，
+    2）甚至知道哪些Shiro对象要求调用这些方法。
+     Spring 自动管理Shiro的对象（生命周期管理）
+     -->
+    <bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor"/>
+    <!--
+      为Spring配置的bean启用Shiro Annotations。仅在lifecycleBeanProcessor运行后运行
+          -->
+    <bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"
+          depends-on="lifecycleBeanPostProcessor"/>
+    <bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+        <property name="securityManager" ref="securityManager"/>
+    </bean>
+
+
+
+    <!--  前提条件： bean id 必须要和 web.xml shiroFilter一致 -->
+    <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        <property name="securityManager" ref="securityManager"/>
+        <!--未认证可以访问的页面 -->
+        <property name="loginUrl" value="/login.jsp"/>
+        <!-- 认证成功后可以访问的页面-->
+        <property name="successUrl" value="/main.jsp"/>
+        <!-- 无权限页面-->
+        <property name="unauthorizedUrl" value="/unauth.jsp"/>
+
+        <!-- <property name="filters">
+            <util:map>
+                <entry key="aName" value-ref="someFilterPojo"/>
+            </util:map>
+        </property> -->
+
+        <!--
+               map  key=value
+                请求的URL资源=拦截器
+
+                anon 匿名拦截器 （未认证的情况下允许访问）
+                authc 认证拦截器 （认证成功的情识下允许访问)
+                logout 认证过滤器
+                roles[角色名称] 角色过滤器
+                Ant风格
+                通配符	说明
+                  ?	匹配任何单字符
+                  *	匹配0或者任意数量的字符
+                  **	匹配0或者更多的目录
+
+              优先顺序：
+                 先声明 为优先。
+              -->
+       <!--
+        <property name="filterChainDefinitions">
+            <value>
+
+                /login.jsp = anon
+                /users/login=anon
+                /css/**=anon
+                /images/**=anon
+                /js/**=anon
+                /login/exit = logout
+                /student.jsp=roles[stu]
+                /teacher.jsp=roles[tea]
+                /list.jsp=roles[stu,tea]
+                /** = authc
+            </value>
+        </property>
+        -->
+        <property name="filterChainDefinitionMap" ref="filterChainDefinitionMap"></property>
+    </bean>
+
+    <!-- 工厂方法注入 -->
+    <!-- 1 构建Bean管理交由Spring ioc容器-->
+    <bean id="filterChainDefinitionMapBuilder" class="com.qfjy.web.shiro.FilterChainDefinitionMapBuilder"></bean>
+    <!-- 2 工厂方法注入-->
+    <bean id="filterChainDefinitionMap" factory-bean="filterChainDefinitionMapBuilder" factory-method="builder" />
+</beans>

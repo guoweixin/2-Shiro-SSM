@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qfjy.mapper.QuestionsMapper" >
+  <resultMap id="BaseResultMap" type="com.qfjy.pojo.Questions" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="question" property="question" jdbcType="VARCHAR" />
+    <result column="correctAnswer" property="correctanswer" jdbcType="SMALLINT" />
+    <result column="sortnum" property="sortnum" jdbcType="INTEGER" />
+    <result column="status" property="status" jdbcType="SMALLINT" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, question, correctAnswer, sortnum, status
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from questions
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from questions
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.qfjy.pojo.Questions" >
+    insert into questions (id, question, correctAnswer, 
+      sortnum, status)
+    values (#{id,jdbcType=INTEGER}, #{question,jdbcType=VARCHAR}, #{correctanswer,jdbcType=SMALLINT}, 
+      #{sortnum,jdbcType=INTEGER}, #{status,jdbcType=SMALLINT})
+  </insert>
+  <insert id="insertSelective" parameterType="com.qfjy.pojo.Questions" >
+    insert into questions
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="question != null" >
+        question,
+      </if>
+      <if test="correctanswer != null" >
+        correctAnswer,
+      </if>
+      <if test="sortnum != null" >
+        sortnum,
+      </if>
+      <if test="status != null" >
+        status,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="question != null" >
+        #{question,jdbcType=VARCHAR},
+      </if>
+      <if test="correctanswer != null" >
+        #{correctanswer,jdbcType=SMALLINT},
+      </if>
+      <if test="sortnum != null" >
+        #{sortnum,jdbcType=INTEGER},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=SMALLINT},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.qfjy.pojo.Questions" >
+    update questions
+    <set >
+      <if test="question != null" >
+        question = #{question,jdbcType=VARCHAR},
+      </if>
+      <if test="correctanswer != null" >
+        correctAnswer = #{correctanswer,jdbcType=SMALLINT},
+      </if>
+      <if test="sortnum != null" >
+        sortnum = #{sortnum,jdbcType=INTEGER},
+      </if>
+      <if test="status != null" >
+        status = #{status,jdbcType=SMALLINT},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.qfjy.pojo.Questions" >
+    update questions
+    set question = #{question,jdbcType=VARCHAR},
+      correctAnswer = #{correctanswer,jdbcType=SMALLINT},
+      sortnum = #{sortnum,jdbcType=INTEGER},
+      status = #{status,jdbcType=SMALLINT}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+
+  <!-- 根据问题 查找到所有的选项 -->
+  <select id="selectAll" resultMap="selectAllResultMap">
+     select * from questions ORDER BY sortnum
+  </select>
+  <resultMap id="selectAllResultMap" type="com.qfjy.dto.QuestionsDTO">
+    <result column="question" property="question" />
+    <result column="correctAnswer" property="correctAnswer" />
+
+    <collection property="answers" column="id" ofType="String" select="selectAnswerByQid"  ></collection>
+  </resultMap>
+
+  <select id="selectAnswerByQid" resultType="String">
+        select aname from answer where qid=#{qid} and status=1 ORDER BY sortnum
+  </select>
+
+</mapper>
