@@ -21,7 +21,7 @@
     <!-- 自定义版本号 -->
     <spring.version>4.3.8.RELEASE</spring.version>
     <!--Shiro 版本号 -->
-    <shiro.version>1.3.2</shiro.version>
+    <shiro.version>1.5.0</shiro.version>
     <!-- mybatis.jar -->
     <mybatis.version>3.4.6</mybatis.version>
     <mybatis.spring.version>1.3.0</mybatis.spring.version>
